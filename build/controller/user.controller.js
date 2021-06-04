@@ -36,15 +36,26 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUsers = exports.getUser = exports.getUsers = void 0;
+exports.updateUser = exports.registre = exports.login = exports.getUsers = void 0;
 var typeorm_1 = require("typeorm");
 var User_1 = require("../entity/User");
+var jwt = require('jsonwebtoken');
 var bcrypt = require('bcrypt');
 // validation
 var Joi = require('@hapi/joi');
+var schemaLogin = Joi.object({
+    email: Joi.string().min(6).max(255).required().email(),
+    password: Joi.string().min(6).max(1024).required()
+});
 var schemaRegister = Joi.object({
     firsname: Joi.string().min(1).max(255).required(),
     lastname: Joi.string().min(1).max(255).required(),
+    email: Joi.string().min(5).required().email(),
+    password: Joi.string().min(6).max(1024).required()
+});
+var schemaUpdate = Joi.object({
+    firsname: Joi.string().min(1).max(255),
+    lastname: Joi.string().min(1).max(255),
     email: Joi.string().min(5).required().email(),
     password: Joi.string().min(6).max(1024).required()
 });
@@ -68,27 +79,50 @@ var getUsers = function (req, res) { return __awaiter(void 0, void 0, void 0, fu
     });
 }); };
 exports.getUsers = getUsers;
-var getUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var users, e_2;
+var login = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var error, user, validPassword, token;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, typeorm_1.getRepository(User_1.User).findOne(req.params.id)];
+                error = schemaLogin.validate(req.body).error;
+                if (error)
+                    return [2 /*return*/, res.status(400).json({ error: error.details[0].message })];
+                return [4 /*yield*/, typeorm_1.getRepository(User_1.User).findOne({ email: req.body.email })];
             case 1:
-                users = _a.sent();
-                return [2 /*return*/, res.status(201).json(users)];
+                user = _a.sent();
+                if (!user)
+                    return [2 /*return*/, res.status(400).json({ error: 'Usuario no encontrado' })];
+                return [4 /*yield*/, bcrypt.compare(req.body.password, user.password)];
             case 2:
-                e_2 = _a.sent();
-                return [2 /*return*/, res.status(404).json({
-                        msg: "Tenemos problemas para realizar la consulta"
-                    })];
-            case 3: return [2 /*return*/];
+                validPassword = _a.sent();
+                if (!validPassword)
+                    return [2 /*return*/, res.status(400).json({ error: 'contraseña no válida' })
+                        // create token
+                    ];
+                // create token
+                try {
+                    token = jwt.sign({
+                        email: req.body.email,
+                        password: user.password
+                    }, process.env.TOKEN_SECRET);
+                    return [2 /*return*/, res.json({
+                            token: token,
+                            user: {
+                                firsname: user.firsname,
+                                lastname: user.lastname,
+                                email: user.email,
+                            }
+                        })];
+                }
+                catch (error) {
+                    return [2 /*return*/, res.status(404).json({ error: "Error de autenticación" })];
+                }
+                return [2 /*return*/];
         }
     });
 }); };
-exports.getUser = getUser;
-var createUsers = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+exports.login = login;
+var registre = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var error, isEmailExist, salt, password, newUser, result, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -124,9 +158,40 @@ var createUsers = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 return [2 /*return*/, res.status(201).json({ "user": result, msg: "usuario creado exitosamente" })];
             case 6:
                 error_1 = _a.sent();
-                return [2 /*return*/, res.status(402).json({ error: error_1 })];
+                return [2 /*return*/, res.status(404).json({ error: error_1 })];
             case 7: return [2 /*return*/];
         }
     });
 }); };
-exports.createUsers = createUsers;
+exports.registre = registre;
+var updateUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var error, user, userUpdate, results, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                error = schemaUpdate.validate(req.body).error;
+                if (error) {
+                    return [2 /*return*/, res.status(400).json({ error: error.details[0].message })];
+                }
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 6, , 7]);
+                return [4 /*yield*/, typeorm_1.getRepository(User_1.User).findOne(req.params.id)];
+            case 2:
+                user = _a.sent();
+                if (!user) return [3 /*break*/, 4];
+                userUpdate = typeorm_1.getRepository(User_1.User).merge(user, req.body);
+                return [4 /*yield*/, typeorm_1.getRepository(User_1.User).save(userUpdate)];
+            case 3:
+                results = _a.sent();
+                return [2 /*return*/, res.status(201).json({ msg: "Usuario Actualizado", 'user': results })];
+            case 4: return [2 /*return*/, res.status(401).json({ msg: "Usuario no encontrado" })];
+            case 5: return [3 /*break*/, 7];
+            case 6:
+                error_2 = _a.sent();
+                return [2 /*return*/, res.status(404).json({ error: error_2 })];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateUser = updateUser;

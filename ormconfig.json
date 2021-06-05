@@ -1,13 +1,13 @@
 {
-    "type": "postgres",
-    "host": "localhost",
-    "port": 5432,
-    "username": "postgres",
-    "password": "root",
-    "database": "productos",
-    "synchronize": true,
-   
-    "entities": [
-       "build/entity/**/*.js"
-    ]
- }
+   "type": "postgres",
+   "host": "localhost",
+   "port": 5432,
+   "username": "postgres",
+   "password": "root",
+   "database": "productos",
+   "synchronize": true,
+
+   "entities": [
+      "build/entity/**/*.js"
+   ]
+}

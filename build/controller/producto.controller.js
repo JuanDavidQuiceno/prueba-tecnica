@@ -41,7 +41,7 @@ var typeorm_1 = require("typeorm");
 var producto_1 = require("../entity/producto");
 var Joi = require('@hapi/joi');
 var schemaPostProducto = Joi.object({
-    nombre: Joi.string().max(255).required(),
+    nombre: Joi.string().min(1).max(255).required(),
     categoria: Joi.number().required(),
     precio: Joi.number().required(),
     inventario: Joi.number().required(),
@@ -53,19 +53,19 @@ var schemaUpdateProducto = Joi.object({
     inventario: Joi.number(),
 });
 var getProductos = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var users, e_1;
+    var produtos, e_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).find()];
+                return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).createQueryBuilder("producto").leftJoinAndSelect("producto.categoria", "categoria").getMany()];
             case 1:
-                users = _a.sent();
-                return [2 /*return*/, res.status(201).json(users)];
+                produtos = _a.sent();
+                return [2 /*return*/, res.status(201).json({ 'productos': produtos })];
             case 2:
                 e_1 = _a.sent();
                 return [2 /*return*/, res.status(404).json({
-                        msg: "Tenemos problemas para realizar la consulta"
+                        msg: "Tenemos problemas para realizar la consulta \e"
                     })];
             case 3: return [2 /*return*/];
         }
@@ -73,7 +73,7 @@ var getProductos = function (req, res) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.getProductos = getProductos;
 var createProducto = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var error, newProduct, result, error_1;
+    var error, newProduct, produtos, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -83,22 +83,25 @@ var createProducto = function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
+                _a.trys.push([1, 4, , 5]);
                 newProduct = typeorm_1.getRepository(producto_1.Producto).create(req.body);
                 return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).save(newProduct)];
             case 2:
-                result = _a.sent();
-                return [2 /*return*/, res.status(201).json({ "producto": result, msg: "Producto creado" })];
+                _a.sent();
+                return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).createQueryBuilder("producto").leftJoinAndSelect("producto.categoria", "categoria").getMany()];
             case 3:
+                produtos = _a.sent();
+                return [2 /*return*/, res.status(201).json({ msg: "Producto creado", "productos": produtos })];
+            case 4:
                 error_1 = _a.sent();
                 return [2 /*return*/, res.status(404).json({ error: error_1 })];
-            case 4: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
 exports.createProducto = createProducto;
 var updateProducto = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var error, producto, productoCombine, results, error_2;
+    var error, producto, productoCombine, results, produtos, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -108,31 +111,36 @@ var updateProducto = function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 6, , 7]);
+                _a.trys.push([1, 7, , 8]);
                 return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).findOne(req.params.id)];
             case 2:
                 producto = _a.sent();
-                if (!producto) return [3 /*break*/, 4];
+                if (!producto) return [3 /*break*/, 5];
                 productoCombine = typeorm_1.getRepository(producto_1.Producto).merge(producto, req.body);
                 return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).save(productoCombine)];
             case 3:
                 results = _a.sent();
-                return [2 /*return*/, res.status(201).json({ msg: "Producto Actualizado", 'producto': results })];
-            case 4: return [2 /*return*/, res.status(401).json({ msg: "Parece que el producto no existe" })];
-            case 5: return [3 /*break*/, 7];
-            case 6:
+                return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).createQueryBuilder("producto").leftJoinAndSelect("producto.categoria", "categoria").whereInIds(req.params.id).getOne()];
+            case 4:
+                produtos = _a.sent();
+                return [2 /*return*/, res.status(201).json({ msg: "Producto Actualizado", 'producto': produtos })];
+            case 5: return [2 /*return*/, res.status(401).json({ error: "Parece que el producto no existe" })];
+            case 6: return [3 /*break*/, 8];
+            case 7:
                 error_2 = _a.sent();
-                return [2 /*return*/, res.status(404).json({ error: error_2 })];
-            case 7: return [2 /*return*/];
+                return [2 /*return*/, res.status(404).json(error_2)];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.updateProducto = updateProducto;
 var deleteProducto = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var producto, deleteProducto_1;
+    var producto, deleteProducto_1, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).findOne(req.params.id)];
+            case 0:
+                _a.trys.push([0, 5, , 6]);
+                return [4 /*yield*/, typeorm_1.getRepository(producto_1.Producto).findOne(req.params.id)];
             case 1:
                 producto = _a.sent();
                 if (!producto) return [3 /*break*/, 3];
@@ -140,7 +148,12 @@ var deleteProducto = function (req, res) { return __awaiter(void 0, void 0, void
             case 2:
                 deleteProducto_1 = _a.sent();
                 return [2 /*return*/, res.status(201).json({ "producto": deleteProducto_1, msg: "Producto Eliminado" })];
-            case 3: return [2 /*return*/, res.status(401).json({ msg: "Parece que el producto no existe" })];
+            case 3: return [2 /*return*/, res.status(401).json({ error: "Parece que el producto no existe" })];
+            case 4: return [3 /*break*/, 6];
+            case 5:
+                error_3 = _a.sent();
+                return [2 /*return*/, res.status(404).json({ error: error_3 })];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

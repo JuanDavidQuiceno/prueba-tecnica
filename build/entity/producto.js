@@ -24,8 +24,8 @@ var Producto = /** @class */ (function () {
         __metadata("design:type", String)
     ], Producto.prototype, "nombre", void 0);
     __decorate([
-        typeorm_1.OneToOne(function (type) { return categoria_1.Categoria; }),
-        typeorm_1.JoinColumn(),
+        typeorm_1.ManyToOne(function (type) { return categoria_1.Categoria; }),
+        typeorm_1.JoinColumn({ name: 'categoria_id' }),
         __metadata("design:type", categoria_1.Categoria)
     ], Producto.prototype, "categoria", void 0);
     __decorate([

@@ -10,7 +10,7 @@ const schemaPostCategoria = Joi.object({
 export const getCategorias = async(req: Request, res: Response): Promise<Response>=> {
     try{
         const categorias = await getRepository(Categoria).find();
-        return res.status(201).json(categorias);
+        return res.status(201).json({categorias: categorias});
 
     }catch(e){
         return res.status(404).json(
@@ -35,7 +35,8 @@ export const createCategoria = async(req: Request, res: Response): Promise<Respo
     try{
         const newCategory = getRepository(Categoria).create(req.body);
         await getRepository(Categoria).save(newCategory);
-        return res.status(201).json({msg: "categorias creada"});
+        const categorias = await getRepository(Categoria).find();
+        return res.status(201).json({msg: "categorias creada", categorias: categorias});
     }catch(error){
         return res.status(404).json({error})
         // return res.status(404).json(
@@ -61,8 +62,9 @@ export const updateCategoria = async(req: Request, res: Response): Promise<Respo
         const categoria = await getRepository(Categoria).findOne(req.params.id)
         if(categoria){
             const combineCategoria = getRepository(Categoria).merge(categoria, req.body);
-            const results = await getRepository(Categoria).save(combineCategoria);
-            return res.status(201).json({msg: "Categoria Actualizada", 'Categoria': results});
+            await getRepository(Categoria).save(combineCategoria);
+            const categorias = await getRepository(Categoria).find();
+            return res.status(201).json({msg: "Categoria Actualizada", 'categorias': categorias});
         }else{
             return res.status(401).json({msg: "Parece que la categoria no existe"});
         }

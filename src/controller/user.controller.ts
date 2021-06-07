@@ -42,8 +42,6 @@ export const getUsers = async(req: Request, res: Response): Promise<Response>=> 
 }
 
 export const login = async(req: Request, res: Response): Promise<Response>=> {
-
-    
     const { error } = schemaLogin.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message })
     
@@ -60,7 +58,7 @@ export const login = async(req: Request, res: Response): Promise<Response>=> {
             password: user.password
         }, process.env.TOKEN_SECRET)
         
-        return res.json({
+        return res.status(201).json({
             token: token,
             user: {
                 firsname: user.firsname,
@@ -101,7 +99,7 @@ export const registre = async(req: Request, res: Response): Promise<Response>=> 
             password: password
         });
         const result = await getRepository(User).save(newUser);
-        return res.status(201).json({"user":result, msg: "usuario creado exitosamente"});
+        return res.status(201).json({msg: "usuario creado exitosamente"});
     } catch (error) {
         return res.status(404).json({error})
     }

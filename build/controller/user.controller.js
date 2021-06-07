@@ -105,7 +105,7 @@ var login = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
                         email: req.body.email,
                         password: user.password
                     }, process.env.TOKEN_SECRET);
-                    return [2 /*return*/, res.json({
+                    return [2 /*return*/, res.status(201).json({
                             token: token,
                             user: {
                                 firsname: user.firsname,
@@ -155,7 +155,7 @@ var registre = function (req, res) { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, typeorm_1.getRepository(User_1.User).save(newUser)];
             case 5:
                 result = _a.sent();
-                return [2 /*return*/, res.status(201).json({ "user": result, msg: "usuario creado exitosamente" })];
+                return [2 /*return*/, res.status(201).json({ msg: "usuario creado exitosamente" })];
             case 6:
                 error_1 = _a.sent();
                 return [2 /*return*/, res.status(404).json({ error: error_1 })];
